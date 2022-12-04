@@ -61,6 +61,7 @@ class ChessBoard:
         board[0][3], board[0][4] = (Queen("black", 0, 3), King("black", 0, 4))
         board[7][3], board[7][4] = (Queen("white", 7, 3), King("white", 7, 4))
 
+    # PRINT CHESSBOARD
     def printBoard(self):
 
         c = 8
@@ -82,6 +83,7 @@ class ChessBoard:
         print("  a b c d e f g h")
         print("")
 
+    # CHECK FOR CHECK
     def isCheck(self):
 
         team = self.turn
@@ -117,6 +119,7 @@ class ChessBoard:
         # print(check)
         return check
 
+    # CHECK FOR CHECKMATE
     def isCheckmate(self):
 
         if not self.isCheck():
@@ -131,25 +134,6 @@ class ChessBoard:
             else:
                 king = self.kingB.copy()
 
-            # kingPc = self.board[king[1]][king[0]]
-
-            # sq2 = [king[0] + 1, king[1]]
-            # sq3 = [king[0] - 1, king[1]]
-            # sq4 = [king[0], king[1] + 1]
-            # sq5 = [king[0], king[1] - 1]
-            # sq6 = [king[0] + 1, king[1] + 1]
-            # sq7 = [king[0] + 1, king[1] - 1]
-            # sq8 = [king[0] - 1, king[1] + 1]
-            # sq9 = [king[0] - 1, king[1] - 1]
-
-            # squares = [sq2, sq3, sq4, sq5, sq6, sq7, sq8, sq9]
-            # squares[:] = filterfalse(
-            #     lambda i: (i[0] < 0 or i[0] > 7 or i[1] < 0 or i[1] > 7)
-            #     or self.board[i[1]][i[0]] != 0,
-            #     squares,
-            # )
-
-            # print(squares)
             check = True
             for i in range(8):
                 if not check:
@@ -224,6 +208,7 @@ class ChessBoard:
             else:
                 return True
 
+    # PRINT MOVE LIST
     def printMoves(self):
 
         print("White\tBlack")
@@ -240,6 +225,350 @@ class ChessBoard:
             print()
 
         finish()
+
+    # NEW GAME
+    def new(self):
+
+        x = 1
+
+        while True:
+            if not os.path.isfile(f"game-{x}.txt"):
+                break
+            else:
+                x += 1
+
+        f = open(f"game-{x}.txt", "w")
+        f.close()
+
+        self.play(x, "")
+
+    #  LOAD GAME
+    def load(self):
+        os.system("cls")
+        path = os.getcwd()
+        onlyfiles = [
+            f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))
+        ]
+        onlyfiles.remove("main.py")
+
+        print("List of available files:\n")
+        for file in onlyfiles:
+            print(file)
+
+        while True:
+            filename = input(
+                "\nInput file name to load the desired file(eg: game-1.txt): "
+            )
+
+            if os.path.isfile(filename):
+
+                board1 = ChessBoard()
+
+                f = open(filename, "r")
+                lines = f.readlines()
+
+                for line in lines:
+                    board1.printBoard()
+
+                    steps = line.split()
+
+                    turn = board1.turn
+
+                    if board1.isCheckmate():
+                        print("Checkmate!")
+                        if turn == "white":
+                            print("Black Wins!\n")
+                        else:
+                            print("White Wins!\n")
+
+                        board1.printMoves()
+                        break
+
+                    # print(f"KingW: {board1.kingW}, KingB: {board1.kingB}")
+                    # print(f"{turn} to move")
+
+                    piece = steps[0]
+                    if piece == "exit":
+                        os.system("cls")
+                        break
+
+                    coords = list(piece)
+
+                    abort = getTrueCoords(coords)
+
+                    if abort == 1:
+                        os.system("cls")
+                        print("Invalid input")
+                        break
+
+                    c = coords[0]
+                    r = coords[1]
+
+                    # c = ord(coords[0]);
+                    # r = 8 - int(coords[1]);
+
+                    # if c >= 65 and c <= 72:
+                    #     c = 8 - (c - 64);
+                    # elif c >= 97 and c <= 104:
+                    #     c = c - 97;
+                    # else:
+                    #     print("Invalid coordinates");
+
+                    move = ""
+
+                    if board1.board[r][c] != 0:
+                        if board1.board[r][c].team == turn:
+                            move = steps[1]
+                        else:
+                            os.system("cls")
+                            print("You cannot move your opponent's pieces")
+                            break
+                    else:
+                        os.system("cls")
+                        print(
+                            "There is no chess piece on the selected coordinate. Please try again"
+                        )
+                        break
+
+                    if (move) != "":
+                        mCoords = list(move)
+
+                        abort = getTrueCoords(mCoords)
+
+                        if abort == 1:
+                            print("Invalid input")
+                            break
+
+                        mc = mCoords[0]
+                        mr = mCoords[1]
+
+                        pc = board1.board[r][c]
+
+                        # enemy = False
+                        if board1.board[mr][mc] != 0:
+                            # if board1.board[mr][mc].team != pc.team:
+                            # enemy = True
+                            if board1.board[mr][mc].team == pc.team:
+                                os.system("cls")
+                                print("Destination Square Occupied")
+                                break
+
+                        valid = pc.checkvalid(piece, move, coords, mCoords)
+
+                        if valid:
+
+                            king = [0, 0]
+
+                            if pc.identifier == "king":
+                                if turn == "white":
+                                    king = board1.kingW.copy()
+                                    board1.kingW = [mc, mr]
+                                else:
+                                    king = board1.kingB.copy()
+                                    board1.kingB = [mc, mr]
+
+                            temp = board1.board[mr][mc]
+                            board1.board[mr][mc] = board1.board[r][c]
+                            board1.board[r][c] = 0
+                            isCheck = board1.isCheck()
+
+                            if pc.identifier == "king":
+                                if turn == "white":
+                                    board1.kingW = king
+                                else:
+                                    board1.kingB = king
+                            # board1.printBoard()
+                            # x = input()
+                            # if x == 1:
+                            #     break
+                            # print(isCheck)
+                            if isCheck:
+                                # print("Checked");
+                                board1.board[r][c] = board1.board[mr][mc]
+                                board1.board[mr][mc] = temp
+                                os.system("cls")
+                                print("Checked!")
+                                break
+
+                            board1.board[mr][mc].col = mc
+                            board1.board[mr][mc].row = mr
+                            board1.board[mr][mc].counter += 1
+                            board1.count += 1
+
+                            if board1.turn == "white":
+                                board1.turn = "black"
+                            else:
+                                board1.turn = "white"
+
+                            if board1.board[mr][mc].identifier == "king":
+                                if board1.board[mr][mc].team == "white":
+                                    board1.kingW = [mc, mr]
+                                else:
+                                    board1.kingB = [mc, mr]
+
+                            if turn == "white":
+                                board1.moveW.append(f"{piece} {move}")
+                            else:
+                                board1.moveB.append(f"{piece} {move}")
+                            os.system("cls")
+                        else:
+                            os.system("cls")
+                            print("Invalid move for selected piece. Please try again")
+
+                f.flush()
+                f.close()
+                sys.stdout.flush()
+                break
+
+            else:
+                print("File with that name does not exist. Please try again")
+
+        self.play(0, filename)
+
+    # PLAY
+    def play(self, x, filename):
+
+        while True:
+
+            self.printBoard()
+
+            turn = self.turn
+
+            if x:
+                f = open(f"game-{x}.txt", "a")
+            else:
+                f = open(filename, "a")
+
+            if board1.isCheckmate():
+                print("Checkmate!")
+                if turn == "white":
+                    print("Black Wins!\n")
+                else:
+                    print("White Wins!\n")
+
+                board1.printMoves()
+                break
+
+            print(f"{turn} to move")
+
+            piece = input("Choose piece (eg; d2 | to exit input 'exit'): ")
+            if piece == "exit":
+                break
+
+            coords = list(piece)
+
+            abort = getTrueCoords(coords)
+
+            if abort == 1:
+                os.system("cls")
+                print("Invalid input")
+                continue
+
+            c = coords[0]
+            r = coords[1]
+
+            move = ""
+
+            if board1.board[r][c] != 0:
+                if board1.board[r][c].team == turn:
+                    move = input("Choose square to move (eg; d4): ")
+                else:
+                    os.system("cls")
+                    print("You cannot move your opponent's pieces")
+            else:
+                os.system("cls")
+                print(
+                    "There is no chess piece on the selected coordinate. Please try again"
+                )
+                continue
+
+            if (move) != "":
+                mCoords = list(move)
+
+                abort = getTrueCoords(mCoords)
+
+                if abort == 1:
+                    print("Invalid input")
+                    continue
+
+                mc = mCoords[0]
+                mr = mCoords[1]
+
+                pc = board1.board[r][c]
+
+                # enemy = False
+                if board1.board[mr][mc] != 0:
+                    # if board1.board[mr][mc].team != pc.team:
+                    # enemy = True
+                    if board1.board[mr][mc].team == pc.team:
+                        os.system("cls")
+                        print("Destination Square Occupied")
+                        continue
+
+                valid = pc.checkvalid(piece, move, coords, mCoords)
+
+                if valid:
+
+                    king = [0, 0]
+
+                    if pc.identifier == "king":
+                        if turn == "white":
+                            king = board1.kingW.copy()
+                            board1.kingW = [mc, mr]
+                        else:
+                            king = board1.kingB.copy()
+                            board1.kingB = [mc, mr]
+
+                    temp = board1.board[mr][mc]
+                    board1.board[mr][mc] = board1.board[r][c]
+                    board1.board[r][c] = 0
+                    isCheck = board1.isCheck()
+
+                    if pc.identifier == "king":
+                        if turn == "white":
+                            board1.kingW = king
+                        else:
+                            board1.kingB = king
+                    # board1.printBoard()
+                    # x = input()
+                    # if x == 1:
+                    #     break
+                    # print(isCheck)
+                    if isCheck:
+                        # print("Checked");
+                        board1.board[r][c] = board1.board[mr][mc]
+                        board1.board[mr][mc] = temp
+                        os.system("cls")
+                        print("Checked!")
+                        continue
+
+                    board1.board[mr][mc].col = mc
+                    board1.board[mr][mc].row = mr
+                    board1.board[mr][mc].counter += 1
+                    board1.count += 1
+
+                    if board1.turn == "white":
+                        board1.turn = "black"
+                    else:
+                        board1.turn = "white"
+
+                    if board1.board[mr][mc].identifier == "king":
+                        if board1.board[mr][mc].team == "white":
+                            board1.kingW = [mc, mr]
+                        else:
+                            board1.kingB = [mc, mr]
+
+                    if turn == "white":
+                        board1.moveW.append(f"{piece} {move}")
+                    else:
+                        board1.moveB.append(f"{piece} {move}")
+
+                    f.write(f"{piece} {move}\n")
+                    f.close()
+                    os.system("cls")
+                else:
+                    os.system("cls")
+                    print("Invalid move for selected piece. Please try again")
 
 
 class Piece:
@@ -586,498 +915,353 @@ while True:
 
         board1 = ChessBoard()
 
-        x = 1
-        while True:
-            if not os.path.isfile(f"game-{x}.txt"):
-                break
-            else:
-                x += 1
+        board1.new()
 
-        f = open(f"game-{x}.txt", "w")
+        # x = 1
+        # while True:
+        #     if not os.path.isfile(f"game-{x}.txt"):
+        #         break
+        #     else:
+        #         x += 1
 
-        while True:
+        # f = open(f"game-{x}.txt", "w")
 
-            board1.printBoard()
-
-            turn = board1.turn
-
-            f = open(f"game-{x}.txt", "a")
-
-            if board1.isCheckmate():
-                print("Checkmate!")
-                if turn == "white":
-                    print("Black Wins!\n")
-                else:
-                    print("White Wins!\n")
-
-                board1.printMoves()
-                break
-            # print(f"KingW: {board1.kingW}, KingB: {board1.kingB}")
-            print(f"{turn} to move")
-
-            piece = input("Choose piece (eg; d2 | to exit input 'exit'): ")
-            if piece == "exit":
-                break
-
-            coords = list(piece)
-
-            abort = getTrueCoords(coords)
-
-            if abort == 1:
-                os.system("cls")
-                print("Invalid input")
-                continue
-
-            c = coords[0]
-            r = coords[1]
-
-            # c = ord(coords[0]);
-            # r = 8 - int(coords[1]);
-
-            # if c >= 65 and c <= 72:
-            #     c = 8 - (c - 64);
-            # elif c >= 97 and c <= 104:
-            #     c = c - 97;
-            # else:
-            #     print("Invalid coordinates");
-
-            move = ""
-
-            if board1.board[r][c] != 0:
-                if board1.board[r][c].team == turn:
-                    move = input("Choose square to move (eg; d4): ")
-                else:
-                    os.system("cls")
-                    print("You cannot move your opponent's pieces")
-            else:
-                os.system("cls")
-                print(
-                    "There is no chess piece on the selected coordinate. Please try again"
-                )
-                continue
-
-            if (move) != "":
-                mCoords = list(move)
-
-                abort = getTrueCoords(mCoords)
-
-                if abort == 1:
-                    print("Invalid input")
-                    continue
-
-                mc = mCoords[0]
-                mr = mCoords[1]
-
-                pc = board1.board[r][c]
-
-                # enemy = False
-                if board1.board[mr][mc] != 0:
-                    # if board1.board[mr][mc].team != pc.team:
-                    # enemy = True
-                    if board1.board[mr][mc].team == pc.team:
-                        os.system("cls")
-                        print("Destination Square Occupied")
-                        continue
-
-                valid = pc.checkvalid(piece, move, coords, mCoords)
-
-                if valid:
-
-                    king = [0, 0]
-
-                    if pc.identifier == "king":
-                        if turn == "white":
-                            king = board1.kingW.copy()
-                            board1.kingW = [mc, mr]
-                        else:
-                            king = board1.kingB.copy()
-                            board1.kingB = [mc, mr]
-
-                    temp = board1.board[mr][mc]
-                    board1.board[mr][mc] = board1.board[r][c]
-                    board1.board[r][c] = 0
-                    isCheck = board1.isCheck()
-
-                    if pc.identifier == "king":
-                        if turn == "white":
-                            board1.kingW = king
-                        else:
-                            board1.kingB = king
-                    # board1.printBoard()
-                    # x = input()
-                    # if x == 1:
-                    #     break
-                    # print(isCheck)
-                    if isCheck:
-                        # print("Checked");
-                        board1.board[r][c] = board1.board[mr][mc]
-                        board1.board[mr][mc] = temp
-                        os.system("cls")
-                        print("Checked!")
-                        continue
-
-                    board1.board[mr][mc].col = mc
-                    board1.board[mr][mc].row = mr
-                    board1.board[mr][mc].counter += 1
-                    board1.count += 1
-
-                    if board1.turn == "white":
-                        board1.turn = "black"
-                    else:
-                        board1.turn = "white"
-
-                    if board1.board[mr][mc].identifier == "king":
-                        if board1.board[mr][mc].team == "white":
-                            board1.kingW = [mc, mr]
-                        else:
-                            board1.kingB = [mc, mr]
-
-                    if turn == "white":
-                        board1.moveW.append(f"{piece} {move}")
-                    else:
-                        board1.moveB.append(f"{piece} {move}")
-
-                    f.write(f"{piece} {move}\n")
-                    f.close()
-                    os.system("cls")
-                else:
-                    os.system("cls")
-                    print("Invalid move for selected piece. Please try again")
     elif choice == 2:
-        os.system("cls")
-        path = os.getcwd()
-        onlyfiles = [
-            f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))
-        ]
-        onlyfiles.remove("main.py")
-        onlyfiles.remove(".gitignore")
-        onlyfiles.remove("LICENSE")
-        onlyfiles.remove("README.md")
-
-        print("List of available files:\n")
-        for file in onlyfiles:
-            print(file)
-
-        while True:
-            filename = input(
-                "\nInput file name to load the desired file(eg: game-1.txt): "
-            )
+        board1.load()
+        # os.system("cls")
+        # path = os.getcwd()
+        # onlyfiles = [
+        #     f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))
+        # ]
+        # onlyfiles.remove("main.py")
+        # onlyfiles.remove(".gitignore")
+        # onlyfiles.remove("LICENSE")
+        # onlyfiles.remove("README.md")
+
+        # print("List of available files:\n")
+        # for file in onlyfiles:
+        #     print(file)
+
+        # while True:
+        #     filename = input(
+        #         "\nInput file name to load the desired file(eg: game-1.txt): "
+        #     )
 
-            if os.path.isfile(filename):
-
-                board1 = ChessBoard()
-
-                f = open(filename, "r")
-                lines = f.readlines()
-
-                for line in lines:
-                    board1.printBoard()
-
-                    steps = line.split()
-
-                    turn = board1.turn
-
-                    if board1.isCheckmate():
-                        print("Checkmate!")
-                        if turn == "white":
-                            print("Black Wins!\n")
-                        else:
-                            print("White Wins!\n")
-
-                        board1.printMoves()
-                        break
-
-                    # print(f"KingW: {board1.kingW}, KingB: {board1.kingB}")
-                    # print(f"{turn} to move")
-
-                    piece = steps[0]
-                    if piece == "exit":
-                        os.system("cls")
-                        break
-
-                    coords = list(piece)
-
-                    abort = getTrueCoords(coords)
-
-                    if abort == 1:
-                        os.system("cls")
-                        print("Invalid input")
-                        break
-
-                    c = coords[0]
-                    r = coords[1]
-
-                    # c = ord(coords[0]);
-                    # r = 8 - int(coords[1]);
-
-                    # if c >= 65 and c <= 72:
-                    #     c = 8 - (c - 64);
-                    # elif c >= 97 and c <= 104:
-                    #     c = c - 97;
-                    # else:
-                    #     print("Invalid coordinates");
-
-                    move = ""
-
-                    if board1.board[r][c] != 0:
-                        if board1.board[r][c].team == turn:
-                            move = steps[1]
-                        else:
-                            os.system("cls")
-                            print("You cannot move your opponent's pieces")
-                            break
-                    else:
-                        os.system("cls")
-                        print(
-                            "There is no chess piece on the selected coordinate. Please try again"
-                        )
-                        break
-
-                    if (move) != "":
-                        mCoords = list(move)
-
-                        abort = getTrueCoords(mCoords)
-
-                        if abort == 1:
-                            print("Invalid input")
-                            break
-
-                        mc = mCoords[0]
-                        mr = mCoords[1]
-
-                        pc = board1.board[r][c]
-
-                        # enemy = False
-                        if board1.board[mr][mc] != 0:
-                            # if board1.board[mr][mc].team != pc.team:
-                            # enemy = True
-                            if board1.board[mr][mc].team == pc.team:
-                                os.system("cls")
-                                print("Destination Square Occupied")
-                                break
-
-                        valid = pc.checkvalid(piece, move, coords, mCoords)
-
-                        if valid:
-
-                            king = [0, 0]
-
-                            if pc.identifier == "king":
-                                if turn == "white":
-                                    king = board1.kingW.copy()
-                                    board1.kingW = [mc, mr]
-                                else:
-                                    king = board1.kingB.copy()
-                                    board1.kingB = [mc, mr]
-
-                            temp = board1.board[mr][mc]
-                            board1.board[mr][mc] = board1.board[r][c]
-                            board1.board[r][c] = 0
-                            isCheck = board1.isCheck()
-
-                            if pc.identifier == "king":
-                                if turn == "white":
-                                    board1.kingW = king
-                                else:
-                                    board1.kingB = king
-                            # board1.printBoard()
-                            # x = input()
-                            # if x == 1:
-                            #     break
-                            # print(isCheck)
-                            if isCheck:
-                                # print("Checked");
-                                board1.board[r][c] = board1.board[mr][mc]
-                                board1.board[mr][mc] = temp
-                                os.system("cls")
-                                print("Checked!")
-                                break
-
-                            board1.board[mr][mc].col = mc
-                            board1.board[mr][mc].row = mr
-                            board1.board[mr][mc].counter += 1
-                            board1.count += 1
-
-                            if board1.turn == "white":
-                                board1.turn = "black"
-                            else:
-                                board1.turn = "white"
-
-                            if board1.board[mr][mc].identifier == "king":
-                                if board1.board[mr][mc].team == "white":
-                                    board1.kingW = [mc, mr]
-                                else:
-                                    board1.kingB = [mc, mr]
-
-                            if turn == "white":
-                                board1.moveW.append(f"{piece} {move}")
-                            else:
-                                board1.moveB.append(f"{piece} {move}")
-                            os.system("cls")
-                        else:
-                            os.system("cls")
-                            print("Invalid move for selected piece. Please try again")
-
-                f.flush()
-                f.close()
-                sys.stdout.flush()
-
-                while True:
-
-                    board1.printBoard()
-
-                    turn = board1.turn
-
-                    f = open(filename, "a")
-
-                    if board1.isCheckmate():
-                        print("Checkmate!")
-                        if turn == "white":
-                            print("Black Wins!\n")
-                        else:
-                            print("White Wins!\n")
-
-                        board1.printMoves()
-                        break
-                    # print(f"KingW: {board1.kingW}, KingB: {board1.kingB}")
-                    print(f"{turn} to move")
-
-                    piece = input("Choose piece (eg; d2 | to exit input 'exit'): ")
-                    if piece == "exit":
-                        os.system("cls")
-                        break
-
-                    coords = list(piece)
-
-                    abort = getTrueCoords(coords)
-
-                    if abort == 1:
-                        os.system("cls")
-                        print("Invalid input")
-                        continue
-
-                    c = coords[0]
-                    r = coords[1]
-
-                    # c = ord(coords[0]);
-                    # r = 8 - int(coords[1]);
-
-                    # if c >= 65 and c <= 72:
-                    #     c = 8 - (c - 64);
-                    # elif c >= 97 and c <= 104:
-                    #     c = c - 97;
-                    # else:
-                    #     print("Invalid coordinates");
-
-                    move = ""
-
-                    if board1.board[r][c] != 0:
-                        if board1.board[r][c].team == turn:
-                            move = input("Choose square to move (eg; d4): ")
-                        else:
-                            os.system("cls")
-                            print("You cannot move your opponent's pieces")
-                    else:
-                        os.system("cls")
-                        print(
-                            "There is no chess piece on the selected coordinate. Please try again"
-                        )
-                        continue
-
-                    if (move) != "":
-                        mCoords = list(move)
-
-                        abort = getTrueCoords(mCoords)
-
-                        if abort == 1:
-                            print("Invalid input")
-                            continue
-
-                        mc = mCoords[0]
-                        mr = mCoords[1]
-
-                        pc = board1.board[r][c]
-
-                        # enemy = False
-                        if board1.board[mr][mc] != 0:
-                            # if board1.board[mr][mc].team != pc.team:
-                            # enemy = True
-                            if board1.board[mr][mc].team == pc.team:
-                                os.system("cls")
-                                print("Destination Square Occupied")
-                                continue
-
-                        valid = pc.checkvalid(piece, move, coords, mCoords)
-
-                        if valid:
-
-                            king = [0, 0]
-
-                            if pc.identifier == "king":
-                                if turn == "white":
-                                    king = board1.kingW.copy()
-                                    board1.kingW = [mc, mr]
-                                else:
-                                    king = board1.kingB.copy()
-                                    board1.kingB = [mc, mr]
-
-                            temp = board1.board[mr][mc]
-                            board1.board[mr][mc] = board1.board[r][c]
-                            board1.board[r][c] = 0
-                            isCheck = board1.isCheck()
-
-                            if pc.identifier == "king":
-                                if turn == "white":
-                                    board1.kingW = king
-                                else:
-                                    board1.kingB = king
-                            # board1.printBoard()
-                            # x = input()
-                            # if x == 1:
-                            #     break
-                            # print(isCheck)
-                            if isCheck:
-                                # print("Checked");
-                                board1.board[r][c] = board1.board[mr][mc]
-                                board1.board[mr][mc] = temp
-                                os.system("cls")
-                                print("Checked!")
-                                continue
-
-                            board1.board[mr][mc].col = mc
-                            board1.board[mr][mc].row = mr
-                            board1.board[mr][mc].counter += 1
-                            board1.count += 1
-
-                            if board1.turn == "white":
-                                board1.turn = "black"
-                            else:
-                                board1.turn = "white"
-
-                            if board1.board[mr][mc].identifier == "king":
-                                if board1.board[mr][mc].team == "white":
-                                    board1.kingW = [mc, mr]
-                                else:
-                                    board1.kingB = [mc, mr]
-
-                            if turn == "white":
-                                board1.moveW.append(f"{piece} {move}")
-                            else:
-                                board1.moveB.append(f"{piece} {move}")
-
-                            f.write(f"{piece} {move}\n")
-                            f.close()
-                            os.system("cls")
-                        else:
-                            os.system("cls")
-                            print("Invalid move for selected piece. Please try again")
-                f.flush()
-                f.close()
-                sys.stdout.flush()
-                f.close()
-                break
-            else:
-                print("File with that name does not exist. Please try again")
+        #     if os.path.isfile(filename):
+
+        #         board1 = ChessBoard()
+
+        #         f = open(filename, "r")
+        #         lines = f.readlines()
+
+        #         for line in lines:
+        #             board1.printBoard()
+
+        #             steps = line.split()
+
+        #             turn = board1.turn
+
+        #             if board1.isCheckmate():
+        #                 print("Checkmate!")
+        #                 if turn == "white":
+        #                     print("Black Wins!\n")
+        #                 else:
+        #                     print("White Wins!\n")
+
+        #                 board1.printMoves()
+        #                 break
+
+        #             # print(f"KingW: {board1.kingW}, KingB: {board1.kingB}")
+        #             # print(f"{turn} to move")
+
+        #             piece = steps[0]
+        #             if piece == "exit":
+        #                 os.system("cls")
+        #                 break
+
+        #             coords = list(piece)
+
+        #             abort = getTrueCoords(coords)
+
+        #             if abort == 1:
+        #                 os.system("cls")
+        #                 print("Invalid input")
+        #                 break
+
+        #             c = coords[0]
+        #             r = coords[1]
+
+        #             # c = ord(coords[0]);
+        #             # r = 8 - int(coords[1]);
+
+        #             # if c >= 65 and c <= 72:
+        #             #     c = 8 - (c - 64);
+        #             # elif c >= 97 and c <= 104:
+        #             #     c = c - 97;
+        #             # else:
+        #             #     print("Invalid coordinates");
+
+        #             move = ""
+
+        #             if board1.board[r][c] != 0:
+        #                 if board1.board[r][c].team == turn:
+        #                     move = steps[1]
+        #                 else:
+        #                     os.system("cls")
+        #                     print("You cannot move your opponent's pieces")
+        #                     break
+        #             else:
+        #                 os.system("cls")
+        #                 print(
+        #                     "There is no chess piece on the selected coordinate. Please try again"
+        #                 )
+        #                 break
+
+        #             if (move) != "":
+        #                 mCoords = list(move)
+
+        #                 abort = getTrueCoords(mCoords)
+
+        #                 if abort == 1:
+        #                     print("Invalid input")
+        #                     break
+
+        #                 mc = mCoords[0]
+        #                 mr = mCoords[1]
+
+        #                 pc = board1.board[r][c]
+
+        #                 # enemy = False
+        #                 if board1.board[mr][mc] != 0:
+        #                     # if board1.board[mr][mc].team != pc.team:
+        #                     # enemy = True
+        #                     if board1.board[mr][mc].team == pc.team:
+        #                         os.system("cls")
+        #                         print("Destination Square Occupied")
+        #                         break
+
+        #                 valid = pc.checkvalid(piece, move, coords, mCoords)
+
+        #                 if valid:
+
+        #                     king = [0, 0]
+
+        #                     if pc.identifier == "king":
+        #                         if turn == "white":
+        #                             king = board1.kingW.copy()
+        #                             board1.kingW = [mc, mr]
+        #                         else:
+        #                             king = board1.kingB.copy()
+        #                             board1.kingB = [mc, mr]
+
+        #                     temp = board1.board[mr][mc]
+        #                     board1.board[mr][mc] = board1.board[r][c]
+        #                     board1.board[r][c] = 0
+        #                     isCheck = board1.isCheck()
+
+        #                     if pc.identifier == "king":
+        #                         if turn == "white":
+        #                             board1.kingW = king
+        #                         else:
+        #                             board1.kingB = king
+        #                     # board1.printBoard()
+        #                     # x = input()
+        #                     # if x == 1:
+        #                     #     break
+        #                     # print(isCheck)
+        #                     if isCheck:
+        #                         # print("Checked");
+        #                         board1.board[r][c] = board1.board[mr][mc]
+        #                         board1.board[mr][mc] = temp
+        #                         os.system("cls")
+        #                         print("Checked!")
+        #                         break
+
+        #                     board1.board[mr][mc].col = mc
+        #                     board1.board[mr][mc].row = mr
+        #                     board1.board[mr][mc].counter += 1
+        #                     board1.count += 1
+
+        #                     if board1.turn == "white":
+        #                         board1.turn = "black"
+        #                     else:
+        #                         board1.turn = "white"
+
+        #                     if board1.board[mr][mc].identifier == "king":
+        #                         if board1.board[mr][mc].team == "white":
+        #                             board1.kingW = [mc, mr]
+        #                         else:
+        #                             board1.kingB = [mc, mr]
+
+        #                     if turn == "white":
+        #                         board1.moveW.append(f"{piece} {move}")
+        #                     else:
+        #                         board1.moveB.append(f"{piece} {move}")
+        #                     os.system("cls")
+        #                 else:
+        #                     os.system("cls")
+        #                     print("Invalid move for selected piece. Please try again")
+
+        #         f.flush()
+        #         f.close()
+        #         sys.stdout.flush()
+
+        # while True:
+
+        #     board1.printBoard()
+
+        #     turn = board1.turn
+
+        #     f = open(filename, "a")
+
+        #     if board1.isCheckmate():
+        #         print("Checkmate!")
+        #         if turn == "white":
+        #             print("Black Wins!\n")
+        #         else:
+        #             print("White Wins!\n")
+
+        #         board1.printMoves()
+        #         break
+        #     # print(f"KingW: {board1.kingW}, KingB: {board1.kingB}")
+        #     print(f"{turn} to move")
+
+        #     piece = input("Choose piece (eg; d2 | to exit input 'exit'): ")
+        #     if piece == "exit":
+        #         os.system("cls")
+        #         break
+
+        #     coords = list(piece)
+
+        #     abort = getTrueCoords(coords)
+
+        #     if abort == 1:
+        #         os.system("cls")
+        #         print("Invalid input")
+        #         continue
+
+        #     c = coords[0]
+        #     r = coords[1]
+
+        #     # c = ord(coords[0]);
+        #     # r = 8 - int(coords[1]);
+
+        #     # if c >= 65 and c <= 72:
+        #     #     c = 8 - (c - 64);
+        #     # elif c >= 97 and c <= 104:
+        #     #     c = c - 97;
+        #     # else:
+        #     #     print("Invalid coordinates");
+
+        #     move = ""
+
+        #     if board1.board[r][c] != 0:
+        #         if board1.board[r][c].team == turn:
+        #             move = input("Choose square to move (eg; d4): ")
+        #         else:
+        #             os.system("cls")
+        #             print("You cannot move your opponent's pieces")
+        #     else:
+        #         os.system("cls")
+        #         print(
+        #             "There is no chess piece on the selected coordinate. Please try again"
+        #         )
+        #         continue
+
+        #     if (move) != "":
+        #         mCoords = list(move)
+
+        #         abort = getTrueCoords(mCoords)
+
+        #         if abort == 1:
+        #             print("Invalid input")
+        #             continue
+
+        #         mc = mCoords[0]
+        #         mr = mCoords[1]
+
+        #         pc = board1.board[r][c]
+
+        #         # enemy = False
+        #         if board1.board[mr][mc] != 0:
+        #             # if board1.board[mr][mc].team != pc.team:
+        #             # enemy = True
+        #             if board1.board[mr][mc].team == pc.team:
+        #                 os.system("cls")
+        #                 print("Destination Square Occupied")
+        #                 continue
+
+        #         valid = pc.checkvalid(piece, move, coords, mCoords)
+
+        #         if valid:
+
+        #             king = [0, 0]
+
+        #             if pc.identifier == "king":
+        #                 if turn == "white":
+        #                     king = board1.kingW.copy()
+        #                     board1.kingW = [mc, mr]
+        #                 else:
+        #                     king = board1.kingB.copy()
+        #                     board1.kingB = [mc, mr]
+
+        #             temp = board1.board[mr][mc]
+        #             board1.board[mr][mc] = board1.board[r][c]
+        #             board1.board[r][c] = 0
+        #             isCheck = board1.isCheck()
+
+        #             if pc.identifier == "king":
+        #                 if turn == "white":
+        #                     board1.kingW = king
+        #                 else:
+        #                     board1.kingB = king
+        #             # board1.printBoard()
+        #             # x = input()
+        #             # if x == 1:
+        #             #     break
+        #             # print(isCheck)
+        #             if isCheck:
+        #                 # print("Checked");
+        #                 board1.board[r][c] = board1.board[mr][mc]
+        #                 board1.board[mr][mc] = temp
+        #                 os.system("cls")
+        #                 print("Checked!")
+        #                 continue
+
+        #             board1.board[mr][mc].col = mc
+        #             board1.board[mr][mc].row = mr
+        #             board1.board[mr][mc].counter += 1
+        #             board1.count += 1
+
+        #             if board1.turn == "white":
+        #                 board1.turn = "black"
+        #             else:
+        #                 board1.turn = "white"
+
+        #             if board1.board[mr][mc].identifier == "king":
+        #                 if board1.board[mr][mc].team == "white":
+        #                     board1.kingW = [mc, mr]
+        #                 else:
+        #                     board1.kingB = [mc, mr]
+
+        #             if turn == "white":
+        #                 board1.moveW.append(f"{piece} {move}")
+        #             else:
+        #                 board1.moveB.append(f"{piece} {move}")
+
+        #             f.write(f"{piece} {move}\n")
+        #             f.close()
+        #             os.system("cls")
+        #         else:
+        #             os.system("cls")
+        #             print("Invalid move for selected piece. Please try again")
+        # f.flush()
+        # f.close()
+        # sys.stdout.flush()
+        # f.close()
+        # break
+        # else:
+        #     print("File with that name does not exist. Please try again")
     elif choice == 3:
         break
     else:
