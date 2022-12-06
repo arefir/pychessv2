@@ -3,22 +3,42 @@ import sys
 import os
 
 
-def getTrueCoords(coords):
+def parseCoords(row, col):
 
-    if isinstance(coords[0], str):
-        coords[0] = ord(coords[0])
-        coords[1] = 8 - int(coords[1])
+    # print(f"row: {row} col: {col}")
 
-    else:
-        coords[1] = 8 - coords[1]
+    row = 8 - int(row)
+    col = ord(col)
 
-    if coords[0] >= 65 and coords[0] <= 72:
-        coords[0] = coords[0] - 65
-    elif coords[0] >= 97 and coords[0] <= 104:
-        coords[0] = coords[0] - 97
-    else:
-        print("Invalid coordinates")
+    # print(f"row: {row} col: {col}")
+
+    if row < 0 or row > 7:
         return 1
+
+    if col < 65 or col > 72:
+        if col < 97 or col > 104:
+            return 1
+
+    if col >= 97:
+        col = col - 97
+    else:
+        col = col - 65
+
+    return [row, col]
+    # if isinstance(coords[0], str):
+    #     coords[0] = ord(coords[0])
+    #     coords[1] = 8 - int(coords[1])
+
+    # else:
+    #     coords[1] = 8 - coords[1]
+
+    # if coords[0] >= 65 and coords[0] <= 72:
+    #     coords[0] = coords[0] - 65
+    # elif coords[0] >= 97 and coords[0] <= 104:
+    #     coords[0] = coords[0] - 97
+    # else:
+    #     print("Invalid coordinates")
+    #     return 1
 
 
 def finish():
@@ -26,40 +46,71 @@ def finish():
     os.system("cls")
 
 
+rows, cols = (8, 8)
+
+
 class ChessBoard:
 
-    rows, cols = (8, 8)
-
-    board = []
-    board = [[0, 0, 0, 0, 0, 0, 0, 0] for i in range(rows)]
-    count = 0
-    kingB = [4, 0]
-    kingW = [4, 7]
-    turn = "white"
-    moveW = []
-    moveB = []
+    # board = []
+    # board = [[0, 0, 0, 0, 0, 0, 0, 0] for i in range(rows)]
+    # count = 0
+    # kingB = [4, 0]
+    # kingW = [4, 7]
+    # turn = "white"
+    # moveW = []
+    # moveB = []
 
     def __init__(self):
 
-        board = self.board
+        self.board = [[0, 0, 0, 0, 0, 0, 0, 0] for i in range(rows)]
+        self.count = 0
+        # self.kingB = [4, 0]
+        # self.kingW = [4, 7]
+        self.turn = "white"
+        self.moveW = []
+        self.moveB = []
 
         for i in range(8):
-            board[1][i] = Pawn("black", 1, i)
+            self.board[1][i] = Pawn("black", 1, i, self.board)
 
         for i in range(8):
-            board[6][i] = Pawn("white", 6, i)
+            self.board[6][i] = Pawn("white", 6, i, self.board)
 
-        board[0][0], board[0][7] = (Rook("black", 0, 0), Rook("black", 0, 7))
-        board[7][0], board[7][7] = (Rook("white", 7, 0), Rook("white", 7, 7))
+        self.board[0][0], self.board[0][7] = (
+            Rook("black", 0, 0, self.board),
+            Rook("black", 0, 7, self.board),
+        )
+        self.board[7][0], self.board[7][7] = (
+            Rook("white", 7, 0, self.board),
+            Rook("white", 7, 7, self.board),
+        )
 
-        board[0][1], board[0][6] = (Knight("black", 0, 1), Knight("black", 0, 6))
-        board[7][1], board[7][6] = (Knight("white", 7, 1), Knight("white", 7, 6))
+        self.board[0][1], self.board[0][6] = (
+            Knight("black", 0, 1, self.board),
+            Knight("black", 0, 6, self.board),
+        )
+        self.board[7][1], self.board[7][6] = (
+            Knight("white", 7, 1, self.board),
+            Knight("white", 7, 6, self.board),
+        )
 
-        board[0][2], board[0][5] = (Bishop("black", 0, 2), Bishop("black", 0, 5))
-        board[7][2], board[7][5] = (Bishop("white", 7, 2), Bishop("white", 7, 5))
+        self.board[0][2], self.board[0][5] = (
+            Bishop("black", 0, 2, self.board),
+            Bishop("black", 0, 5, self.board),
+        )
+        self.board[7][2], self.board[7][5] = (
+            Bishop("white", 7, 2, self.board),
+            Bishop("white", 7, 5, self.board),
+        )
 
-        board[0][3], board[0][4] = (Queen("black", 0, 3), King("black", 0, 4))
-        board[7][3], board[7][4] = (Queen("white", 7, 3), King("white", 7, 4))
+        self.board[0][3], self.board[0][4] = (
+            Queen("black", 0, 3, self.board),
+            King("black", 0, 4, self.board),
+        )
+        self.board[7][3], self.board[7][4] = (
+            Queen("white", 7, 3, self.board),
+            King("white", 7, 4, self.board),
+        )
 
     # PRINT CHESSBOARD
     def printBoard(self):
@@ -83,6 +134,20 @@ class ChessBoard:
         print("  a b c d e f g h")
         print("")
 
+    # find KING PIECE
+    def findKing(self, team):
+
+        for k in range(8):
+            for l in range(8):
+                king = self.board[k][l]
+                if king != 0:
+                    if king.team != team:
+                        continue
+                    elif king.identifier == "king":
+                        return king
+
+        return 1
+
     # CHECK FOR CHECK
     def isCheck(self):
 
@@ -98,24 +163,29 @@ class ChessBoard:
                 if piece != 0:
                     # print(piece)
                     if piece.team != team:
-                        coords = [j, i]
-                        src = [piece.col + 65, 8 - piece.row]
+                        # coords = [j, i]
+                        # src = [piece.col + 65, 8 - piece.row]
                         # print(f"{piece.identifier} {src}")
-                        if team == "white":
-                            dest = [self.kingW[0] + 65, 8 - self.kingW[1]]
-                            # print(dest)
-                            check = piece.checkvalid(src, dest, coords, self.kingW)
-                            # print(f"isCheck {piece.identifier} {src} {dest} {check}")
-                            if check:
-                                # print("if check? break")
-                                break
-                        if team == "black":
-                            dest = [self.kingB[0] + 65, 8 - self.kingB[1]]
-                            # print(f"isCheck {piece.identifier} {src} {dest} {check}")
-                            check = piece.checkvalid(src, dest, coords, self.kingB)
-                if check:
-                    # print("if check? break")
-                    break
+                        # if team == "white":
+                        # dest = [self.kingW[0] + 65, 8 - self.kingW[1]]
+                        # print(dest)
+                        king = self.findKing(team)
+                        if king == 1:
+                            print("king not found")
+                            os.system("exit")
+
+                        check = piece.checkvalid(king.row, king.col)
+                        # print(f"isCheck {piece.identifier} {src} {dest} {check}")
+                        if check:
+                            # print("if check? break")
+                            return check
+                        # if team == "black":
+                        #     dest = [self.kingB[0] + 65, 8 - self.kingB[1]]
+                        #     print(f"isCheck {piece.identifier} {src} {dest} {check}")
+                        #     check = piece.checkvalid(src, dest, coords, self.kingB)
+                # if check:
+                #     # print("if check? break")
+                #     break
         # print(check)
         return check
 
@@ -127,81 +197,175 @@ class ChessBoard:
         else:
 
             team = self.turn
-            king = [0, 0]
+            # king = [0, 0]
 
-            if team == "white":
-                king = self.kingW.copy()
-            else:
-                king = self.kingB.copy()
+            # if team == "white":
+            #     king = self.kingW.copy()
+            # else:
+            #     king = self.kingB.copy()
 
             check = True
             for i in range(8):
-                if not check:
-                    break
+                # if not check:
+                #     break
                 for j in range(8):
-                    if not check:
-                        break
+                    # if not check:
+                    #     break
                     piece = self.board[i][j]
                     if piece != 0:
                         if piece.team == team:
 
-                            for c in range(8):
-                                if not check:
-                                    break
-                                for r in range(8):
-                                    coords = [j, i]
-                                    dest = [c + 65, 8 - r]
-                                    src = [piece.col + 65, 8 - piece.row]
+                            for r in range(8):
+                                # if not check:
+                                #     break
+                                for c in range(8):
+                                    # coords = [j, i]
+                                    # dest = [c + 65, 8 - r]
+                                    # src = [piece.col + 65, 8 - piece.row]
 
                                     if self.board[r][c] != 0:
                                         if self.board[r][c].team == team:
                                             continue
 
-                                    if coords[0] == c and coords[1] == r:
+                                    # if coords[0] == c and coords[1] == r:
+                                    #     continue
+                                    if r == i and c == j:
                                         continue
 
-                                    valid = piece.checkvalid(src, dest, coords, [c, r])
+                                    valid = piece.checkvalid(r, c)
 
                                     if valid:
-                                        temp = board1.board[r][c]
-                                        board1.board[r][c] = board1.board[coords[1]][
-                                            coords[0]
-                                        ]
-                                        board1.board[coords[1]][coords[0]] = 0
-                                        if board1.board[r][c].identifier == "king":
-                                            if board1.board[r][c].team == "white":
-                                                board1.kingW = [c, r]
-                                            else:
-                                                board1.kingB = [c, r]
-                                        # self.printBoard()
-                                        check = board1.isCheck()
-                                        # print(
-                                        #     f"isCheckmate {piece.identifier} {src} {dest} {check}"
-                                        # )
-                                        board1.board[coords[1]][
-                                            coords[0]
-                                        ] = board1.board[r][c]
-                                        board1.board[r][c] = temp
+                                        temp = self.board[r][c]
+                                        piece.move(r, c)
+                                        # if self.board[r][c].identifier == "king":
+                                        #     if self.board[r][c].team == "white":
+                                        #         self.kingW = [c, r]
+                                        #     else:
+                                        #         self.kingB = [c, r]
 
-                                        if board1.board[coords[1]][coords[0]] != 0:
-                                            if (
-                                                board1.board[coords[1]][
-                                                    coords[0]
-                                                ].identifier
-                                                == "king"
-                                            ):
-                                                if (
-                                                    board1.board[coords[1]][
-                                                        coords[0]
-                                                    ].team
-                                                    == "white"
-                                                ):
-                                                    board1.kingW = king
-                                                else:
-                                                    board1.kingB = king
+                                        # print("TEMPBOARD\n")
+                                        # self.printBoard()
+                                        check = self.isCheck()
+                                        # print(
+                                        #     f"isCheckmate {piece.identifier} src:{piece.row} {piece.col} des:{r} {c} {check}"
+                                        # )
+
+                                        piece = self.board[r][c]
+                                        piece.move(i, j)
+                                        self.board[r][c] = temp
+
+                                        # self.printBoard()
+
+                                        # if self.board[coords[1]][coords[0]] != 0:
+                                        #     if (
+                                        #         self.board[coords[1]][
+                                        #             coords[0]
+                                        #         ].identifier
+                                        #         == "king"
+                                        #     ):
+                                        #         if (
+                                        #             self.board[coords[1]][
+                                        #                 coords[0]
+                                        #             ].team
+                                        #             == "white"
+                                        #         ):
+                                        #             self.kingW = king
+                                        #         else:
+                                        #             self.kingB = king
 
                                         if not check:
-                                            break
+                                            return False
+
+            if check == False:
+                return False
+            else:
+                return True
+
+    # CHECK DRAW
+    def isDraw(self):
+
+        if self.isCheck():
+            return False
+        else:
+            team = self.turn
+            # king = [0, 0]
+
+            # if team == "white":
+            #     king = self.kingW.copy()
+            # else:
+            #     king = self.kingB.copy()
+
+            check = True
+            for i in range(8):
+                # if not check:
+                #     break
+                for j in range(8):
+                    # if not check:
+                    #     break
+                    piece = self.board[i][j]
+                    if piece != 0:
+                        if piece.team == team:
+
+                            for r in range(8):
+                                # if not check:
+                                #     break
+                                for c in range(8):
+                                    # coords = [j, i]
+                                    # dest = [c + 65, 8 - r]
+                                    # src = [piece.col + 65, 8 - piece.row]
+
+                                    if self.board[r][c] != 0:
+                                        if self.board[r][c].team == team:
+                                            continue
+
+                                    # if coords[0] == c and coords[1] == r:
+                                    #     continue
+                                    if r == i and c == j:
+                                        continue
+
+                                    valid = piece.checkvalid(r, c)
+
+                                    if valid:
+                                        temp = self.board[r][c]
+                                        piece.move(r, c)
+                                        # if self.board[r][c].identifier == "king":
+                                        #     if self.board[r][c].team == "white":
+                                        #         self.kingW = [c, r]
+                                        #     else:
+                                        #         self.kingB = [c, r]
+
+                                        # print("TEMPBOARD\n")
+                                        # self.printBoard()
+                                        check = self.isCheck()
+                                        # print(
+                                        #     f"isDraw {piece.identifier} src:{piece.row} {piece.col} des:{r} {c} {check}"
+                                        # )
+
+                                        piece = self.board[r][c]
+                                        piece.move(i, j)
+                                        self.board[r][c] = temp
+
+                                        # self.printBoard()
+
+                                        # if self.board[coords[1]][coords[0]] != 0:
+                                        #     if (
+                                        #         self.board[coords[1]][
+                                        #             coords[0]
+                                        #         ].identifier
+                                        #         == "king"
+                                        #     ):
+                                        #         if (
+                                        #             self.board[coords[1]][
+                                        #                 coords[0]
+                                        #             ].team
+                                        #             == "white"
+                                        #         ):
+                                        #             self.kingW = king
+                                        #         else:
+                                        #             self.kingB = king
+
+                                        if not check:
+                                            return False
 
             if check == False:
                 return False
@@ -244,6 +408,8 @@ class ChessBoard:
 
     #  LOAD GAME
     def load(self):
+        turn = self.turn
+
         os.system("cls")
         path = os.getcwd()
         onlyfiles = [
@@ -262,30 +428,27 @@ class ChessBoard:
 
             if os.path.isfile(filename):
 
-                board1 = ChessBoard()
-
                 f = open(filename, "r")
                 lines = f.readlines()
 
                 for line in lines:
-                    board1.printBoard()
+                    self.printBoard()
 
                     steps = line.split()
 
-                    turn = board1.turn
+                    turn = self.turn
 
-                    if board1.isCheckmate():
+                    if self.isCheckmate():
                         print("Checkmate!")
                         if turn == "white":
                             print("Black Wins!\n")
                         else:
                             print("White Wins!\n")
 
-                        board1.printMoves()
+                        self.printMoves()
                         break
 
-                    # print(f"KingW: {board1.kingW}, KingB: {board1.kingB}")
-                    # print(f"{turn} to move")
+                    print(f"{turn} to move")
 
                     piece = steps[0]
                     if piece == "exit":
@@ -293,126 +456,113 @@ class ChessBoard:
                         break
 
                     coords = list(piece)
+                    coords = parseCoords(coords[1], coords[0])
 
-                    abort = getTrueCoords(coords)
-
-                    if abort == 1:
-                        os.system("cls")
+                    if coords == 1:
+                        # os.system("cls")
                         print("Invalid input")
-                        break
+                        continue
 
-                    c = coords[0]
-                    r = coords[1]
-
-                    # c = ord(coords[0]);
-                    # r = 8 - int(coords[1]);
-
-                    # if c >= 65 and c <= 72:
-                    #     c = 8 - (c - 64);
-                    # elif c >= 97 and c <= 104:
-                    #     c = c - 97;
-                    # else:
-                    #     print("Invalid coordinates");
+                    r = coords[0]
+                    c = coords[1]
 
                     move = ""
 
-                    if board1.board[r][c] != 0:
-                        if board1.board[r][c].team == turn:
+                    if self.board[r][c] != 0:
+                        if self.board[r][c].team == turn:
                             move = steps[1]
                         else:
                             os.system("cls")
                             print("You cannot move your opponent's pieces")
-                            break
                     else:
                         os.system("cls")
                         print(
                             "There is no chess piece on the selected coordinate. Please try again"
                         )
-                        break
+                        continue
 
                     if (move) != "":
-                        mCoords = list(move)
+                        coords = list(move)
+                        coords = parseCoords(coords[1], coords[0])
 
-                        abort = getTrueCoords(mCoords)
-
-                        if abort == 1:
+                        if coords == 1:
+                            os.system("cls")
                             print("Invalid input")
-                            break
+                            continue
 
-                        mc = mCoords[0]
-                        mr = mCoords[1]
+                        mr = coords[0]
+                        mc = coords[1]
 
-                        pc = board1.board[r][c]
+                        pc = self.board[r][c]
 
                         # enemy = False
-                        if board1.board[mr][mc] != 0:
-                            # if board1.board[mr][mc].team != pc.team:
+                        if self.board[mr][mc] != 0:
+                            # if self.board[mr][mc].team != pc.team:
                             # enemy = True
-                            if board1.board[mr][mc].team == pc.team:
+                            if self.board[mr][mc].team == pc.team:
                                 os.system("cls")
                                 print("Destination Square Occupied")
-                                break
+                                continue
 
-                        valid = pc.checkvalid(piece, move, coords, mCoords)
+                        valid = pc.checkvalid(mr, mc)
 
                         if valid:
 
-                            king = [0, 0]
+                            # king = [0, 0]
 
-                            if pc.identifier == "king":
-                                if turn == "white":
-                                    king = board1.kingW.copy()
-                                    board1.kingW = [mc, mr]
-                                else:
-                                    king = board1.kingB.copy()
-                                    board1.kingB = [mc, mr]
+                            # if pc.identifier == "king":
+                            #     if turn == "white":
+                            #         king = self.kingW.copy()
+                            #         self.kingW = [mc, mr]
+                            #     else:
+                            #         king = self.kingB.copy()
+                            #         self.kingB = [mc, mr]
+                            temp = self.board[mr][mc]
+                            pc.move(mr, mc)
+                            pc = self.board[mr][mc]
+                            isCheck = self.isCheck()
 
-                            temp = board1.board[mr][mc]
-                            board1.board[mr][mc] = board1.board[r][c]
-                            board1.board[r][c] = 0
-                            isCheck = board1.isCheck()
-
-                            if pc.identifier == "king":
-                                if turn == "white":
-                                    board1.kingW = king
-                                else:
-                                    board1.kingB = king
-                            # board1.printBoard()
+                            # if pc.identifier == "king":
+                            #     if turn == "white":
+                            #         self.kingW = king
+                            #     else:
+                            #         self.kingB = king
+                            # self.printBoard()
                             # x = input()
                             # if x == 1:
                             #     break
                             # print(isCheck)
                             if isCheck:
                                 # print("Checked");
-                                board1.board[r][c] = board1.board[mr][mc]
-                                board1.board[mr][mc] = temp
+                                pc.move(r, c)
                                 os.system("cls")
                                 print("Checked!")
-                                break
+                                continue
 
-                            board1.board[mr][mc].col = mc
-                            board1.board[mr][mc].row = mr
-                            board1.board[mr][mc].counter += 1
-                            board1.count += 1
+                            # self.board[mr][mc].col = mc
+                            # self.board[mr][mc].row = mr
+                            # self.board[mr][mc].counter += 1
+                            pc.counter += 1
+                            self.count += 1
 
-                            if board1.turn == "white":
-                                board1.turn = "black"
+                            if self.turn == "white":
+                                self.turn = "black"
                             else:
-                                board1.turn = "white"
+                                self.turn = "white"
 
-                            if board1.board[mr][mc].identifier == "king":
-                                if board1.board[mr][mc].team == "white":
-                                    board1.kingW = [mc, mr]
-                                else:
-                                    board1.kingB = [mc, mr]
+                            # if self.board[mr][mc].identifier == "king":
+                            #     if self.board[mr][mc].team == "white":
+                            #         self.kingW = [mc, mr]
+                            #     else:
+                            #         self.kingB = [mc, mr]
 
                             if turn == "white":
-                                board1.moveW.append(f"{piece} {move}")
+                                self.moveW.append(f"{piece} {move}")
                             else:
-                                board1.moveB.append(f"{piece} {move}")
-                            os.system("cls")
+                                self.moveB.append(f"{piece} {move}")
+                            # os.system("cls")
                         else:
-                            os.system("cls")
+                            # os.system("cls")
                             print("Invalid move for selected piece. Please try again")
 
                 f.flush()
@@ -439,38 +589,44 @@ class ChessBoard:
             else:
                 f = open(filename, "a")
 
-            if board1.isCheckmate():
+            if self.isCheckmate():
                 print("Checkmate!")
                 if turn == "white":
                     print("Black Wins!\n")
                 else:
                     print("White Wins!\n")
 
-                board1.printMoves()
+                self.printMoves()
+                break
+
+            if self.isDraw():
+                print("Draw!")
+
+                self.printMoves()
                 break
 
             print(f"{turn} to move")
 
             piece = input("Choose piece (eg; d2 | to exit input 'exit'): ")
             if piece == "exit":
+                os.system("cls")
                 break
 
             coords = list(piece)
+            coords = parseCoords(coords[1], coords[0])
 
-            abort = getTrueCoords(coords)
-
-            if abort == 1:
-                os.system("cls")
+            if coords == 1:
+                # os.system("cls")
                 print("Invalid input")
                 continue
 
-            c = coords[0]
-            r = coords[1]
+            r = coords[0]
+            c = coords[1]
 
             move = ""
 
-            if board1.board[r][c] != 0:
-                if board1.board[r][c].team == turn:
+            if self.board[r][c] != 0:
+                if self.board[r][c].team == turn:
                     move = input("Choose square to move (eg; d4): ")
                 else:
                     os.system("cls")
@@ -483,416 +639,444 @@ class ChessBoard:
                 continue
 
             if (move) != "":
-                mCoords = list(move)
+                coords = list(move)
+                coords = parseCoords(coords[1], coords[0])
 
-                abort = getTrueCoords(mCoords)
-
-                if abort == 1:
+                if coords == 1:
+                    os.system("cls")
                     print("Invalid input")
                     continue
 
-                mc = mCoords[0]
-                mr = mCoords[1]
+                mr = coords[0]
+                mc = coords[1]
 
-                pc = board1.board[r][c]
+                pc = self.board[r][c]
 
                 # enemy = False
-                if board1.board[mr][mc] != 0:
-                    # if board1.board[mr][mc].team != pc.team:
+                if self.board[mr][mc] != 0:
+                    # if self.board[mr][mc].team != pc.team:
                     # enemy = True
-                    if board1.board[mr][mc].team == pc.team:
+                    if self.board[mr][mc].team == pc.team:
                         os.system("cls")
                         print("Destination Square Occupied")
                         continue
 
-                valid = pc.checkvalid(piece, move, coords, mCoords)
+                valid = pc.checkvalid(mr, mc)
 
                 if valid:
 
-                    king = [0, 0]
+                    # king = [0, 0]
 
-                    if pc.identifier == "king":
-                        if turn == "white":
-                            king = board1.kingW.copy()
-                            board1.kingW = [mc, mr]
-                        else:
-                            king = board1.kingB.copy()
-                            board1.kingB = [mc, mr]
+                    # if pc.identifier == "king":
+                    #     if turn == "white":
+                    #         king = self.kingW.copy()
+                    #         self.kingW = [mc, mr]
+                    #     else:
+                    #         king = self.kingB.copy()
+                    #         self.kingB = [mc, mr]
+                    temp = self.board[mr][mc]
+                    pc.move(mr, mc)
+                    pc = self.board[mr][mc]
+                    isCheck = self.isCheck()
 
-                    temp = board1.board[mr][mc]
-                    board1.board[mr][mc] = board1.board[r][c]
-                    board1.board[r][c] = 0
-                    isCheck = board1.isCheck()
-
-                    if pc.identifier == "king":
-                        if turn == "white":
-                            board1.kingW = king
-                        else:
-                            board1.kingB = king
-                    # board1.printBoard()
+                    # if pc.identifier == "king":
+                    #     if turn == "white":
+                    #         self.kingW = king
+                    #     else:
+                    #         self.kingB = king
+                    # self.printBoard()
                     # x = input()
                     # if x == 1:
                     #     break
                     # print(isCheck)
                     if isCheck:
                         # print("Checked");
-                        board1.board[r][c] = board1.board[mr][mc]
-                        board1.board[mr][mc] = temp
+                        pc.move(r, c)
                         os.system("cls")
                         print("Checked!")
                         continue
 
-                    board1.board[mr][mc].col = mc
-                    board1.board[mr][mc].row = mr
-                    board1.board[mr][mc].counter += 1
-                    board1.count += 1
+                    # self.board[mr][mc].col = mc
+                    # self.board[mr][mc].row = mr
+                    # self.board[mr][mc].counter += 1
+                    pc.counter += 1
+                    self.count += 1
 
-                    if board1.turn == "white":
-                        board1.turn = "black"
+                    if self.turn == "white":
+                        self.turn = "black"
                     else:
-                        board1.turn = "white"
+                        self.turn = "white"
 
-                    if board1.board[mr][mc].identifier == "king":
-                        if board1.board[mr][mc].team == "white":
-                            board1.kingW = [mc, mr]
-                        else:
-                            board1.kingB = [mc, mr]
+                    # if self.board[mr][mc].identifier == "king":
+                    #     if self.board[mr][mc].team == "white":
+                    #         self.kingW = [mc, mr]
+                    #     else:
+                    #         self.kingB = [mc, mr]
 
                     if turn == "white":
-                        board1.moveW.append(f"{piece} {move}")
+                        self.moveW.append(f"{piece} {move}")
                     else:
-                        board1.moveB.append(f"{piece} {move}")
+                        self.moveB.append(f"{piece} {move}")
 
                     f.write(f"{piece} {move}\n")
                     f.close()
-                    os.system("cls")
+                    # os.system("cls")
                 else:
-                    os.system("cls")
+                    # os.system("cls")
                     print("Invalid move for selected piece. Please try again")
 
 
 class Piece:
 
-    identifier = "piece"
-    team = ""
-    symbolB = ""
-    symbolW = ""
-    counter = 0
-    row = 0
-    col = 0
-    srcC = [0, 0]
-    destC = [0, 0]
+    # identifier = "piece"
+    # team = ""
+    # symbolB = ""
+    # symbolW = ""
+    # counter = 0
+    # board = ""
+    # row = 0
+    # col = 0
+    # srcC = [0, 0]
+    # destC = [0, 0]
 
-    def __init__(self, team, row, col):
+    def __init__(self, team, row, col, board):
+        self.indentfier = ""
         self.team = team
+        self.board = board
+        self.counter = 0
         self.row = row
         self.col = col
 
-    def initCoords(self, src, dest):
-        srcC = []
-        destC = []
-        if not isinstance(src, list):
-            srcC = list(src)
-        else:
-            srcC = src
+    def move(self, row, col):
+        self.board[row][col] = self.board[self.row][self.col]
+        self.board[self.row][self.col] = 0
+        self.row = row
+        self.col = col
 
-        if not isinstance(dest, list):
-            destC = list(dest)
-        else:
-            destC = dest
+    # def initCoords(self, src, dest):
+    #     self.srcC = []
+    #     self.destC = []
+    #     if not isinstance(src, list):
+    #         self.srcC = list(src)
+    #     else:
+    #         self.srcC = src
 
-        # print(f"init {srcC} {destC}")
-        # print(srcC);
-        # print(destC);
-        if isinstance(srcC[0], str):
-            self.srcC[0] = ord(srcC[0])
-        else:
-            self.srcC[0] = srcC[0]
-        self.srcC[1] = int(srcC[1])
-        if isinstance(destC[0], str):
-            self.destC[0] = ord(destC[0])
-        else:
-            self.destC[0] = destC[0]
-        self.destC[1] = int(destC[1])
-        # print(f"init {self.srcC} {self.destC}")
-        # print(self.srcC);
-        # print(self.destC);
+    #     if not isinstance(dest, list):
+    #         self.destC = list(dest)
+    #     else:
+    #         self.destC = dest
+
+    # print(f"init {self.srcC} {destC}")
+    # print(self.srcC);
+    # print(destC);
+    ######################
+    # if isinstance(self.srcC[0], str):
+    #     self.srcC[0] = ord(self.srcC[0])
+    # else:
+    #     self.srcC[0] = self.srcC[0]
+    # self.srcC[1] = int(self.srcC[1])
+    # if isinstance(self.destC[0], str):
+    #     self.destC[0] = ord(self.destC[0])
+    # else:
+    #     self.destC[0] = self.destC[0]
+    # self.destC[1] = int(self.destC[1])
+    ######################
+    # print(f"init {self.srcC} {self.destC}")
+    # print(self.srcC);
+    # print(self.destC);
 
 
 class Pawn(Piece):
-    def __init__(self, team, row, col):
-        Piece.__init__(self, team, row, col)
+    def __init__(self, team, row, col, board):
+        Piece.__init__(self, team, row, col, board)
         self.identifier = "pawn"
         self.symbolB = "♙"
         self.symbolW = "♟"
 
-    def checkvalid(self, src, dest, coords, mCoords):
+    def checkvalid(self, row, col):
 
-        self.initCoords(src, dest)
-
-        srcC = self.srcC
-        destC = self.destC
-
+        # self.initCoords(src, dest)
         team = self.team
+
+        # print(f"self row: {self.row} self col: {self.col} row: {row} col: {col}")
 
         if team == "white":
             if self.counter > 0:
-                if (destC[1] - srcC[1]) != 1:
+                if (row - self.row) != -1:
                     return False
-            elif (destC[1] - srcC[1]) > 2 or (destC[1] - srcC[1]) < 1:
+            elif (row - self.row) < -2 or (row - self.row) > -1:
                 return False
+            if (row - self.row) == -2:
+                if self.board[row + 1][col] != 0:
+                    return False
 
         if team == "black":
             if self.counter > 0:
-                if (destC[1] - srcC[1]) != -1:
+                if (row - self.row) != 1:
                     return False
-            elif (destC[1] - srcC[1]) < -2 or (destC[1] - srcC[1]) > -1:
+            elif (row - self.row) > 2 or (row - self.row) < 1:
                 return False
+            if (row - self.row) == 2:
+                if self.board[row - 1][col] != 0:
+                    return False
 
-        if srcC[0] != destC[0]:
-            if abs(destC[0] - srcC[0]) != 1 or abs(destC[1] - srcC[1]) != 1:
+        if self.col != col:
+            if abs(row - self.row) != 1 or abs(col - self.col) != 1:
                 return False
-            elif board1.board[mCoords[1]][mCoords[0]] == 0:
+            elif self.board[row][col] == 0:
                 return False
-        elif board1.board[mCoords[1]][mCoords[0]] != 0:
+        elif self.board[row][col] != 0:
             return False
 
         return True
 
 
 class Rook(Piece):
-    def __init__(self, team, row, col):
-        Piece.__init__(self, team, row, col)
+    def __init__(self, team, row, col, board):
+        Piece.__init__(self, team, row, col, board)
         self.identifier = "rook"
         self.symbolB = "♖"
         self.symbolW = "♜"
 
-    def checkvalid(self, src, dest, coords, mCoords):
+    def checkvalid(self, row, col):
 
-        self.initCoords(src, dest)
-
-        srcC = self.srcC
-        destC = self.destC
-        c = coords[0]
-        r = coords[1]
-        mc = mCoords[0]
-        mr = mCoords[1]
+        # srcC = self.srcC
+        # destC = self.destC
+        # c = coords[0]
+        # r = coords[1]
+        # mc = mCoords[0]
+        # mr = mCoords[1]
 
         team = self.team
 
-        if (srcC[0] != destC[0]) and (srcC[1] != destC[1]):
+        if (row != self.row) and (col != self.col):
             return False
 
-        if (c != mc) and (abs(mc - c) > 1):
-            if mc > c:
-                for i in range(c + 1, mc):
-                    if board1.board[r][i] != 0:
+        if (col != self.col) and (abs(col - self.col) > 1):
+            if col > self.col:
+                for i in range(self.col + 1, col):
+                    if self.board[row][i] != 0:
                         return False
             else:
-                for i in range(mc + 1, c):
-                    if board1.board[r][i] != 0:
+                for i in range(col + 1, self.col):
+                    if self.board[row][i] != 0:
                         return False
 
-        if (r != mr) and (abs(mr - r) > 1):
-            if mr > r:
-                for i in range(r + 1, mr):
-                    if board1.board[i][c] != 0:
+        if (row != self.row) and (abs(row - self.row) > 1):
+            if row > self.row:
+                for i in range(self.row + 1, row):
+                    if self.board[i][col] != 0:
                         return False
             else:
-                for i in range(mr + 1, r):
-                    if board1.board[i][c] != 0:
+                for i in range(row + 1, self.row):
+                    if self.board[i][col] != 0:
                         return False
 
         return True
 
 
 class Knight(Piece):
-    def __init__(self, team, row, col):
-        Piece.__init__(self, team, row, col)
+    def __init__(self, team, row, col, board):
+        Piece.__init__(self, team, row, col, board)
         self.identifier = "knight"
         self.symbolB = "♘"
         self.symbolW = "♞"
 
-    def checkvalid(self, src, dest, coords, mCoords):
+    def checkvalid(self, row, col):
 
-        self.initCoords(src, dest)
+        # self.initCoords(src, dest)
 
-        srcC = self.srcC
-        destC = self.destC
-        c = coords[0]
-        r = coords[1]
-        mc = mCoords[0]
-        mr = mCoords[1]
+        # srcC = self.srcC
+        # destC = self.destC
+        # c = coords[0]
+        # r = coords[1]
+        # mc = mCoords[0]
+        # mr = mCoords[1]
 
-        team = self.team
+        # team = self.team
 
-        if abs(destC[0] - srcC[0]) == 2:
-            if abs(destC[1] - srcC[1]) == 1:
+        if abs(row - self.row) == 2:
+            if abs(col - self.col) == 1:
                 return True
 
-        if abs(destC[0] - srcC[0]) == 1:
-            if abs(destC[1] - srcC[1]) == 2:
+        if abs(row - self.row) == 1:
+            if abs(col - self.col) == 2:
                 return True
 
         return False
 
 
 class Bishop(Piece):
-    def __init__(self, team, row, col):
-        Piece.__init__(self, team, row, col)
+    def __init__(self, team, row, col, board):
+        Piece.__init__(self, team, row, col, board)
         self.identifier = "bishop"
         self.symbolB = "♗"
         self.symbolW = "♝"
 
-    def checkvalid(self, src, dest, coords, mCoords):
+    def checkvalid(self, row, col):
 
-        self.initCoords(src, dest)
+        # print(f"self row: {self.row} self col: {self.col} row: {row} col: {col}")
 
-        srcC = self.srcC
-        destC = self.destC
+        # self.initCoords(src, dest)
 
-        c = coords[0]
-        r = coords[1]
-        mc = mCoords[0]
-        mr = mCoords[1]
+        # srcC = self.srcC
+        # destC = self.destC
 
-        team = self.team
+        # c = coords[0]
+        # r = coords[1]
+        # mc = mCoords[0]
+        # mr = mCoords[1]
+
+        # team = self.team
 
         # print(srcC, destC)
 
-        if abs(destC[0] - srcC[0]) != abs(destC[1] - srcC[1]):
+        if abs(row - self.row) != abs(col - self.col):
             # print("287")
             return False
 
-        cd = 0
         rd = 0
+        cd = 0
 
-        if destC[0] > srcC[0]:
-            cd = 1
-        else:
-            cd = -1
-
-        if destC[1] > srcC[1]:
+        if row > self.row:
             rd = 1
         else:
             rd = -1
 
-        srcC[0] += cd
-        srcC[1] += rd
+        if col > self.col:
+            cd = 1
+        else:
+            cd = -1
 
-        while srcC[0] != destC[0]:
-            srcTC = srcC.copy()
-            getTrueCoords(srcTC)
+        tempRow = self.row
+        tempCol = self.col
+        tempRow += rd
+        tempCol += cd
+
+        #  and (
+        #     (coords[0] >= 65 and coords[0] <= 72)
+        #     or (coords[0] >= 97 and coords[0] <= 104)
+        # ):
+        while tempCol != col:
+            # print(
+            #     f"self row: {self.row} self col: {self.col} temprow: {tempRow} tempcol: {tempCol}"
+            # )
             # print(f"srcC: {srcC}, srcTC: {srcTC}, destC: {destC}")
             # print(f"srcCol = {srcC[0]}, srcRow = {srcC[1]}, destCol = {destC[0]}, destRow = {destC[1]}")
             # print(f"srcTCol = {srcTC[0]}, srcTRow = {srcTC[1]}")
-            # print(board1.board[srcTC[1]][srcTC[0]])
-            if board1.board[srcTC[1]][srcTC[0]] != 0:
+            # print(self.board[srcTC[1]][srcTC[0]])
+            if self.board[tempRow][tempCol] != 0:
                 # print("314")
                 return False
-            srcC[0] += cd
-            srcC[1] += rd
+            tempRow += rd
+            tempCol += cd
 
         return True
 
 
 class Queen(Piece):
-    def __init__(self, team, row, col):
-        Piece.__init__(self, team, row, col)
+    def __init__(self, team, row, col, board):
+        Piece.__init__(self, team, row, col, board)
         self.identifier = "queen"
         self.symbolB = "♕"
         self.symbolW = "♛"
 
-    def checkvalid(self, src, dest, coords, mCoords):
+    def checkvalid(self, row, col):
 
-        self.initCoords(src, dest)
+        # self.initCoords(src, dest)
 
-        srcC = self.srcC
-        destC = self.destC
-        c = coords[0]
-        r = coords[1]
-        mc = mCoords[0]
-        mr = mCoords[1]
+        # srcC = self.srcC
+        # destC = self.destC
+        # c = coords[0]
+        # r = coords[1]
+        # mc = mCoords[0]
+        # mr = mCoords[1]
 
-        team = self.team
+        # team = self.team
 
-        if (srcC[0] != destC[0]) and (srcC[1] != destC[1]):
-            if abs(destC[0] - srcC[0]) != abs(destC[1] - srcC[1]):
+        if (row != self.row) and (col != self.col):
+            if abs(row - self.row) != abs(col - self.col):
                 return False
 
-            cd = 0
             rd = 0
+            cd = 0
 
-            if destC[0] > srcC[0]:
-                cd = 1
-            else:
-                cd = -1
-
-            if destC[1] > srcC[1]:
+            if row > self.row:
                 rd = 1
             else:
                 rd = -1
 
-            srcC[0] += cd
-            srcC[1] += rd
+            if col > self.col:
+                cd = 1
+            else:
+                cd = -1
 
-            while srcC[0] != destC[0]:
-                srcTC = srcC.copy()
-                getTrueCoords(srcTC)
+            tempRow = self.row
+            tempCol = self.col
+            tempRow += rd
+            tempCol += cd
+
+            #  and (
+            #     (coords[0] >= 65 and coords[0] <= 72)
+            #     or (coords[0] >= 97 and coords[0] <= 104)
+            # ):
+            while tempCol != col:
+                # print(f"srcC: {srcC}, srcTC: {srcTC}, destC: {destC}")
                 # print(f"srcCol = {srcC[0]}, srcRow = {srcC[1]}, destCol = {destC[0]}, destRow = {destC[1]}")
                 # print(f"srcTCol = {srcTC[0]}, srcTRow = {srcTC[1]}")
-                # print(board1.board[srcTC[1]][srcTC[0]])
-                if board1.board[srcTC[1]][srcTC[0]] != 0:
+                # print(self.board[srcTC[1]][srcTC[0]])
+                if self.board[tempRow][tempCol] != 0:
+                    # print("314")
                     return False
-                srcC[0] += cd
-                srcC[1] += rd
+                tempRow += rd
+                tempCol += cd
 
             return True
 
-        if (c != mc) and (abs(mc - c) > 1):
-            if mc > c:
-                for i in range(c + 1, mc):
-                    if board1.board[r][i] != 0:
+        if (col != self.col) and (abs(col - self.col) > 1):
+            if col > self.col:
+                for i in range(self.col + 1, col):
+                    if self.board[row][i] != 0:
                         return False
             else:
-                for i in range(mc + 1, c):
-                    if board1.board[r][i] != 0:
+                for i in range(col + 1, self.col):
+                    if self.board[row][i] != 0:
                         return False
 
-        if (r != mr) and (abs(mr - r) > 1):
-            if mr > r:
-                for i in range(r + 1, mr):
-                    if board1.board[i][c] != 0:
+        if (row != self.row) and (abs(row - self.row) > 1):
+            if row > self.row:
+                for i in range(self.row + 1, row):
+                    if self.board[i][col] != 0:
                         return False
             else:
-                for i in range(mr + 1, r):
-                    if board1.board[i][c] != 0:
+                for i in range(row + 1, self.row):
+                    if self.board[i][col] != 0:
                         return False
 
         return True
 
 
 class King(Piece):
-    def __init__(self, team, row, col):
-        Piece.__init__(self, team, row, col)
+    def __init__(self, team, row, col, board):
+        Piece.__init__(self, team, row, col, board)
         self.identifier = "king"
         self.symbolB = "♔"
         self.symbolW = "♚"
 
-    def checkvalid(self, src, dest, coords, mCoords):
+    def checkvalid(self, row, col):
 
-        self.initCoords(src, dest)
+        # self.initCoords(src, dest)
 
-        srcC = self.srcC
-        destC = self.destC
-        c = coords[0]
-        r = coords[1]
-        mc = mCoords[0]
-        mr = mCoords[1]
+        # srcC = self.srcC
+        # destC = self.destC
+        # c = coords[0]
+        # r = coords[1]
+        # mc = mCoords[0]
+        # mr = mCoords[1]
 
-        team = self.team
+        # team = self.team
 
-        if (abs(destC[0] - srcC[0])) > 1 or (abs(destC[1] - srcC[1])) > 1:
+        if (abs(row - self.row)) > 1 or (abs(col - self.col)) > 1:
             return False
 
         return True
@@ -900,7 +1084,6 @@ class King(Piece):
 
 ###########################################################################
 
-board1 = ChessBoard()
 
 while True:
 
@@ -912,10 +1095,9 @@ while True:
     choice = int(input("Input number to select: "))
 
     if choice == 1:
-
-        board1 = ChessBoard()
-
-        board1.new()
+        chessboard1 = ChessBoard()
+        chessboard1.new()
+        del chessboard1
 
         # x = 1
         # while True:
@@ -927,7 +1109,9 @@ while True:
         # f = open(f"game-{x}.txt", "w")
 
     elif choice == 2:
-        board1.load()
+        chessboard2 = ChessBoard()
+        chessboard2.load()
+        del chessboard2
         # os.system("cls")
         # path = os.getcwd()
         # onlyfiles = [
