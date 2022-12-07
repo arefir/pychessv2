@@ -535,6 +535,7 @@ class ChessBoard:
                             if isCheck:
                                 # print("Checked");
                                 pc.move(r, c)
+                                self.board[mr][mc] = temp
                                 os.system("cls")
                                 print("Checked!")
                                 continue
@@ -692,6 +693,7 @@ class ChessBoard:
                     if isCheck:
                         # print("Checked");
                         pc.move(r, c)
+                        self.board[mr][mr] = temp
                         os.system("cls")
                         print("Checked!")
                         continue
