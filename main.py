@@ -727,8 +727,9 @@ class ChessBoard:
                     # print(isCheck)
                     if isCheck:
                         # print("Checked");
+
                         pc.move(r, c)
-                        self.board[mr][mr] = temp
+                        self.board[mr][mc] = temp
                         os.system("cls")
                         print("Checked!")
                         continue
