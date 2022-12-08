@@ -284,6 +284,44 @@ class ChessBoard:
     # CHECK DRAW
     def isDraw(self):
 
+        white, black = False, False
+        wKnight, wBishop, wOthers = 0, 0, 0
+        bKnight, bBishop, bOthers = 0, 0, 0
+        for i in range(8):
+            for j in range(8):
+                piece = self.board[i][j]
+
+                if piece != 0:
+                    if piece.identifier == "knight":
+                        if piece.team == "white":
+                            wKnight += 1
+                        else:
+                            bKnight += 1
+                    elif piece.identifier == "bishop":
+                        if piece.team == "white":
+                            wBishop += 1
+                        else:
+                            bBishop += 1
+                    elif piece.identifier == "king":
+                        continue
+                    else:
+                        if piece.team == "white":
+                            wOthers += 1
+                        else:
+                            bOthers += 1
+
+        if (wKnight == 1 and wOthers == 0 and wBishop == 0) or (
+            wKnight == 0 and wOthers == 0 and wBishop == 1
+        ):
+            white = True
+        if (bKnight == 1 and bOthers == 0 and bBishop == 0) or (
+            bKnight == 0 and bOthers == 0 and bBishop == 1
+        ):
+            black = True
+
+        if white and black:
+            return True
+
         if self.isCheck():
             return False
         else:
@@ -295,7 +333,7 @@ class ChessBoard:
             # else:
             #     king = self.kingB.copy()
 
-            check = True
+            # check = True
             for i in range(8):
                 # if not check:
                 #     break
@@ -367,10 +405,7 @@ class ChessBoard:
                                         if not check:
                                             return False
 
-            if check == False:
-                return False
-            else:
-                return True
+        return True
 
     # PRINT MOVE LIST
     def printMoves(self):
