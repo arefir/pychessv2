@@ -310,12 +310,16 @@ class ChessBoard:
                         else:
                             bOthers += 1
 
-        if (wKnight == 1 and wOthers == 0 and wBishop == 0) or (
-            wKnight == 0 and wOthers == 0 and wBishop == 1
+        if (
+            (wKnight == 1 and wOthers == 0 and wBishop == 0)
+            or (wKnight == 0 and wOthers == 0 and wBishop == 1)
+            or (wKnight == 0 and wOthers == 0 and wBishop == 0)
         ):
             white = True
-        if (bKnight == 1 and bOthers == 0 and bBishop == 0) or (
-            bKnight == 0 and bOthers == 0 and bBishop == 1
+        if (
+            (bKnight == 1 and bOthers == 0 and bBishop == 0)
+            or (bKnight == 0 and bOthers == 0 and bBishop == 1)
+            or (bKnight == 0 and bOthers == 0 and bBishop == 0)
         ):
             black = True
 
