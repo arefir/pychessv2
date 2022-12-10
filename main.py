@@ -447,6 +447,14 @@ class ChessBoard:
                                 print("Checked!")
                                 continue
 
+                            if self.board[mr][mc].identifier == "pawn":
+                                if self.board[mr][mc].enPassant != "":
+                                    self.board[mr][mc].enPassant = ""
+                                    if turn == "white":
+                                        self.board[mr + 1][mc] = 0
+                                    if turn == "black":
+                                        self.board[mr - 1][mc] = 0
+
                             pc.counter += 1
                             self.count += 1
 
@@ -578,6 +586,13 @@ class ChessBoard:
                         print("Checked!")
                         continue
 
+                    if self.board[mr][mc].identifier == "pawn":
+                        if self.board[mr][mc].enPassant != "":
+                            self.board[mr][mc].enPassant = ""
+                            if turn == "white":
+                                self.board[mr + 1][mc] = 0
+                            if turn == "black":
+                                self.board[mr - 1][mc] = 0
                     pc.counter += 1
                     self.count += 1
 
@@ -621,12 +636,12 @@ class Pawn(Piece):
         self.identifier = "pawn"
         self.symbolB = "♙"
         self.symbolW = "♟"
+        self.enPassant = ""
 
     def checkvalid(self, row, col):
 
         # self.initCoords(src, dest)
         team = self.team
-
         # print(f"self row: {self.row} self col: {self.col} row: {row} col: {col}")
 
         if team == "white":
@@ -638,6 +653,14 @@ class Pawn(Piece):
             if (row - self.row) == -2:
                 if self.board[row + 1][col] != 0:
                     return False
+                if col + 1 < col:
+                    if self.board[row][col + 1] != 0:
+                        if self.board[row][col + 1].identifier == "pawn":
+                            self.board[row][col + 1].enPassant = [row + 1, col]
+                if col - 1 >= 0:
+                    if self.board[row][col - 1] != 0:
+                        if self.board[row][col - 1].identifier == "pawn":
+                            self.board[row][col - 1].enPassant = [row + 1, col]
 
         if team == "black":
             if self.counter > 0:
@@ -648,8 +671,22 @@ class Pawn(Piece):
             if (row - self.row) == 2:
                 if self.board[row - 1][col] != 0:
                     return False
+                if col + 1 < cols:
+                    if self.board[row][col + 1] != 0:
+                        if self.board[row][col + 1].identifier == "pawn":
+                            self.board[row][col + 1].enPassant = [row - 1, col]
+                if col - 1 >= 0:
+                    if self.board[row][col - 1] != 0:
+                        if self.board[row][col - 1].identifier == "pawn":
+                            self.board[row][col - 1].enPassant = [row - 1, col]
+
+        print(self.enPassant)
+        print(f"{row} {col}")
 
         if self.col != col:
+            if self.enPassant != 0 and self.enPassant != "":
+                if row == self.enPassant[0] and col == self.enPassant[1]:
+                    return True
             if abs(row - self.row) != 1 or abs(col - self.col) != 1:
                 return False
             elif self.board[row][col] == 0:
