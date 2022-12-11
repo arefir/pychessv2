@@ -7,8 +7,11 @@ def parseCoords(row, col):
 
     # print(f"row: {row} col: {col}")
 
-    row = 8 - int(row)
-    col = ord(col)
+    try:
+        row = 8 - int(row)
+        col = ord(col)
+    except:
+        return 1
 
     # print(f"row: {row} col: {col}")
 
