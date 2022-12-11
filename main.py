@@ -420,7 +420,10 @@ class ChessBoard:
 
                         if (move) != "":
                             coords = list(move)
-                            coords = parseCoords(coords[1], coords[0])
+                            try:
+                                coords = parseCoords(coords[1], coords[0])
+                            except:
+                                coords = 1
 
                             if coords == 1:
                                 os.system("cls")
@@ -536,7 +539,10 @@ class ChessBoard:
                 break
 
             coords = list(piece)
-            coords = parseCoords(coords[1], coords[0])
+            try:
+                coords = parseCoords(coords[1], coords[0])
+            except:
+                coords = 1
 
             if coords == 1:
                 os.system("cls")
@@ -563,7 +569,10 @@ class ChessBoard:
 
             if (move) != "":
                 coords = list(move)
-                coords = parseCoords(coords[1], coords[0])
+                try:
+                    coords = parseCoords(coords[1], coords[0])
+                except:
+                    coords = 1
 
                 if coords == 1:
                     os.system("cls")
