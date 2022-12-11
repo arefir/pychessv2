@@ -357,126 +357,139 @@ class ChessBoard:
                 f = open(filename, "r")
                 lines = f.readlines()
 
-                for line in lines:
-                    self.printBoard()
+                try:
+                    for line in lines:
+                        self.printBoard()
 
-                    steps = line.split()
+                        steps = line.split()
 
-                    turn = self.turn
+                        turn = self.turn
 
-                    if self.isCheckmate():
-                        print("Checkmate!")
-                        if turn == "white":
-                            print("Black Wins!\n")
-                        else:
-                            print("White Wins!\n")
+                        if self.isCheckmate():
+                            print("Checkmate!")
+                            if turn == "white":
+                                print("Black Wins!\n")
+                            else:
+                                print("White Wins!\n")
 
-                        self.printMoves()
-                        break
+                            self.printMoves()
+                            break
 
-                    print(f"{turn} to move")
+                        print(f"{turn} to move")
 
-                    piece = steps[0]
-                    if piece == "exit":
-                        os.system("cls")
-                        break
-
-                    coords = list(piece)
-                    coords = parseCoords(coords[1], coords[0])
-
-                    if coords == 1:
-                        # os.system("cls")
-                        print("Invalid input")
-                        continue
-
-                    r = coords[0]
-                    c = coords[1]
-
-                    move = ""
-
-                    if self.board[r][c] != 0:
-                        if self.board[r][c].team == turn:
-                            move = steps[1]
-                        else:
+                        piece = steps[0]
+                        if piece == "exit":
                             os.system("cls")
-                            print("You cannot move your opponent's pieces")
-                    else:
-                        os.system("cls")
-                        print(
-                            "There is no chess piece on the selected coordinate. Please try again"
-                        )
-                        continue
+                            break
 
-                    if (move) != "":
-                        coords = list(move)
-                        coords = parseCoords(coords[1], coords[0])
+                        coords = list(piece)
+                        try:
+                            coords = parseCoords(coords[1], coords[0])
+                        except:
+                            os.system("cls")
+                            print(
+                                "This file could not be loaded, Please make sure it is a valid save file"
+                            )
+                            return 1
 
                         if coords == 1:
                             os.system("cls")
                             print("Invalid input")
                             continue
 
-                        mr = coords[0]
-                        mc = coords[1]
+                        r = coords[0]
+                        c = coords[1]
 
-                        pc = self.board[r][c]
+                        move = ""
 
-                        # enemy = False
-                        if self.board[mr][mc] != 0:
-                            # if self.board[mr][mc].team != pc.team:
-                            # enemy = True
-                            if self.board[mr][mc].team == pc.team:
-                                os.system("cls")
-                                print("Destination Square Occupied")
-                                continue
-
-                        valid = pc.checkvalid(mr, mc)
-
-                        if valid:
-
-                            temp = self.board[mr][mc]
-                            pc.move(mr, mc)
-                            pc = self.board[mr][mc]
-                            isCheck = self.isCheck()
-
-                            if isCheck:
-                                # print("Checked");
-                                pc.move(r, c)
-                                self.board[mr][mc] = temp
-                                os.system("cls")
-                                print("Checked!")
-                                continue
-
-                            if self.board[mr][mc].identifier == "pawn":
-                                if self.board[mr][mc].enPassant != "":
-                                    self.board[mr][mc].enPassant = ""
-                                    if turn == "white":
-                                        self.board[mr + 1][mc] = 0
-                                    if turn == "black":
-                                        self.board[mr - 1][mc] = 0
-
-                            pc.counter += 1
-                            self.count += 1
-
-                            if self.turn == "white":
-                                self.turn = "black"
+                        if self.board[r][c] != 0:
+                            if self.board[r][c].team == turn:
+                                move = steps[1]
                             else:
-                                self.turn = "white"
-
-                            if turn == "white":
-                                self.moveW.append(f"{piece} {move}")
-                            else:
-                                self.moveB.append(f"{piece} {move}")
-                            # os.system("cls")
+                                os.system("cls")
+                                print("You cannot move your opponent's pieces")
                         else:
-                            # os.system("cls")
-                            print("Invalid move for selected piece. Please try again")
+                            os.system("cls")
+                            print(
+                                "There is no chess piece on the selected coordinate. Please try again"
+                            )
+                            continue
 
-                f.flush()
-                f.close()
-                sys.stdout.flush()
-                break
+                        if (move) != "":
+                            coords = list(move)
+                            coords = parseCoords(coords[1], coords[0])
 
+                            if coords == 1:
+                                os.system("cls")
+                                print("Invalid input")
+                                continue
+
+                            mr = coords[0]
+                            mc = coords[1]
+
+                            pc = self.board[r][c]
+
+                            # enemy = False
+                            if self.board[mr][mc] != 0:
+                                # if self.board[mr][mc].team != pc.team:
+                                # enemy = True
+                                if self.board[mr][mc].team == pc.team:
+                                    os.system("cls")
+                                    print("Destination Square Occupied")
+                                    continue
+
+                            valid = pc.checkvalid(mr, mc)
+
+                            if valid:
+
+                                temp = self.board[mr][mc]
+                                pc.move(mr, mc)
+                                pc = self.board[mr][mc]
+                                isCheck = self.isCheck()
+
+                                if isCheck:
+                                    # print("Checked");
+                                    pc.move(r, c)
+                                    self.board[mr][mc] = temp
+                                    os.system("cls")
+                                    print("Checked!")
+                                    continue
+
+                                if self.board[mr][mc].identifier == "pawn":
+                                    if self.board[mr][mc].enPassant != "":
+                                        self.board[mr][mc].enPassant = ""
+                                        if turn == "white":
+                                            self.board[mr + 1][mc] = 0
+                                        if turn == "black":
+                                            self.board[mr - 1][mc] = 0
+
+                                pc.counter += 1
+                                self.count += 1
+
+                                if self.turn == "white":
+                                    self.turn = "black"
+                                else:
+                                    self.turn = "white"
+
+                                if turn == "white":
+                                    self.moveW.append(f"{piece} {move}")
+                                else:
+                                    self.moveB.append(f"{piece} {move}")
+                                os.system("cls")
+                            else:
+                                os.system("cls")
+                                print(
+                                    "Invalid move for selected piece. Please try again"
+                                )
+
+                    f.flush()
+                    f.close()
+                    sys.stdout.flush()
+                    break
+                except:
+                    print(
+                        "This file could not be loaded, Please make sure it is a valid save file"
+                    )
             else:
                 print("File with that name does not exist. Please try again")
 
@@ -523,7 +536,7 @@ class ChessBoard:
             coords = parseCoords(coords[1], coords[0])
 
             if coords == 1:
-                # os.system("cls")
+                os.system("cls")
                 print("Invalid input")
                 continue
 
@@ -608,9 +621,9 @@ class ChessBoard:
 
                     f.write(f"{piece} {move}\n")
                     f.close()
-                    # os.system("cls")
+                    os.system("cls")
                 else:
-                    # os.system("cls")
+                    os.system("cls")
                     print("Invalid move for selected piece. Please try again")
 
 
@@ -938,7 +951,10 @@ while True:
     print("2. Load Game")
     print("3. Exit")
 
-    choice = int(input("Input number to select: "))
+    try:
+        choice = int(input("Input number to select: "))
+    except:
+        choice = 4
 
     if choice == 1:
         chessboard1 = ChessBoard()
