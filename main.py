@@ -653,7 +653,7 @@ class Pawn(Piece):
             if (row - self.row) == -2:
                 if self.board[row + 1][col] != 0:
                     return False
-                if col + 1 < col:
+                if col + 1 < cols:
                     if self.board[row][col + 1] != 0:
                         if self.board[row][col + 1].identifier == "pawn":
                             self.board[row][col + 1].enPassant = [row + 1, col]
@@ -680,8 +680,8 @@ class Pawn(Piece):
                         if self.board[row][col - 1].identifier == "pawn":
                             self.board[row][col - 1].enPassant = [row - 1, col]
 
-        print(self.enPassant)
-        print(f"{row} {col}")
+        # print(f"enpassant: {self.enPassant}")
+        # print(f"{row} {col}")
 
         if self.col != col:
             if self.enPassant != 0 and self.enPassant != "":
@@ -867,9 +867,64 @@ class King(Piece):
 
     def checkvalid(self, row, col):
 
+        if self.counter < 1:
+            if self.team == "white":
+                if row == 7 and col == 2:
+                    if self.board[7][0] != 0:
+                        if (
+                            self.board[7][0].identifier == "rook"
+                            and self.board[7][0].counter < 1
+                        ):
+                            for i in range(1, self.col):
+                                if self.board[row][i] != 0:
+                                    return False
+                            self.board[7][0].counter += 1
+                            self.board[7][0].move(7, 3)
+                            return True
+                if row == 7 and col == 6:
+                    if self.board[7][7] != 0:
+                        if (
+                            self.board[7][7].identifier == "rook"
+                            and self.board[7][7].counter < 1
+                        ):
+                            for i in range(self.col + 1, 7):
+                                if self.board[row][i] != 0:
+                                    return False
+                            self.board[7][7].counter += 1
+                            self.board[7][7].move(7, 5)
+                            return True
+            if self.team == "black":
+                if row == 0 and col == 2:
+                    if self.board[0][0] != 0:
+                        if (
+                            self.board[0][0].identifier == "rook"
+                            and self.board[0][0].counter < 1
+                        ):
+                            for i in range(1, self.col):
+                                if self.board[row][i] != 0:
+                                    return False
+                            self.board[0][0].counter += 1
+                            self.board[0][0].move(0, 3)
+                            self.counter += 1
+                            return True
+                if row == 0 and col == 6:
+                    if self.board[0][7] != 0:
+                        if (
+                            self.board[0][7].identifier == "rook"
+                            and self.board[0][7].counter < 1
+                        ):
+                            for i in range(self.col + 1, 7):
+                                if self.board[row][i] != 0:
+                                    return False
+                            self.board[0][7].counter += 1
+                            self.board[0][7].move(0, 5)
+                            self.counter += 1
+                            return True
+
         if (abs(row - self.row)) > 1 or (abs(col - self.col)) > 1:
             return False
 
+        self.counter += 1
         return True
 
 
